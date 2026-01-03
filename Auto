@@ -1,0 +1,106 @@
+import pyautogui
+import time
+import random
+from pynput import keyboard
+
+running = False
+script_active = True
+
+def double_click():
+    """Fast double click to initiate heart"""
+    pyautogui.click()
+    time.sleep(random.uniform(0.01, 0.05))
+    pyautogui.click()
+
+def single_click():
+    """Single click with human-like timing"""
+    pyautogui.click()
+
+def random_delay():
+    """Random delay between actions to avoid detection"""
+    # Mix of fast and slow clicks
+    if random.random() < 0.7:
+        # 70% chance of fast clicking
+        return random.uniform(0.1, 0.3)
+    else:
+        # 30% chance of slower pause
+        return random.uniform(0.4, 0.6)
+
+def on_press(key):
+    global running, script_active
+
+    try:
+        if key == keyboard.Key.f6:
+            running = not running
+            status = "STARTED" if running else "PAUSED"
+            print(f"[{status}] Auto-clicker")
+        elif key == keyboard.Key.f7:
+            script_active = False
+            running = False
+            print("[EXIT] Shutting down...")
+            return False
+    except:
+        pass
+
+def main():
+    global running, script_active
+
+    print("=" * 40)
+    print("TikTok Live Auto-Clicker")
+    print("=" * 40)
+    print("F6 = Start/Pause")
+    print("F7 = Exit")
+    print("=" * 40)
+    print("")
+    print("Position your mouse over the TikTok live video")
+    print("Press F6 to start...")
+    print("")
+    
+    # Start keyboard listener in separate thread
+    listener = keyboard.Listener(on_press=on_press)
+    listener.start()
+
+    click_count = 0
+    session_start = None
+
+    while script_active:
+        if running:
+            if session_start is None:
+                session_start = time.time()
+                # Initial double-click to start hearting
+                print("[ACTION] Initial double-click")
+                double_click()
+                time.sleep(random.uniform(0.2, 0.4))
+            
+            # Single clicks to continue hearts
+            single_click()
+            click_count += 1
+            
+            # Occasional status update
+            if click_count % 50 == 0:
+                elapsed = int(time.time() - session_start)
+                print(f"[STATUS] {click_count} clicks | {elapsed}s elapsed")
+            
+            # Random delay
+            delay = random_delay()
+            
+            # Occasionally add longer pauses to seem human
+            if random.random() < 0.05:
+                delay += random.uniform(0.5, 1.5)
+                print("[PAUSE] Taking a short break...")
+            
+            # Very rarely, do another double-click
+            if random.random() < 0.02:
+                print("[ACTION] Random double-click")
+                double_click()
+            
+            time.sleep(delay)
+        else:
+            session_start = None
+            time.sleep(0.1)
+    
+    listener.stop()
+    print(f"[DONE] Total clicks: {click_count}")
+
+if __name__ == "__main__":
+    main()
